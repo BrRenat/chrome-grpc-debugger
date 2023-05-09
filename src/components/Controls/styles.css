@@ -1,0 +1,17 @@
+.input-clear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border: none;
+  background: transparent;
+}
+
+.input-clear:hover {
+  transform: scale(1.4);
+}
+
+.input-clear img {
+  width: 8px;
+  height: 8px;
+}

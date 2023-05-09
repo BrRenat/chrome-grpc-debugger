@@ -1,0 +1,15 @@
+.network-empty {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  background-color: var(--bg);
+  height: 100%;
+}
+
+.network-empty .content {
+  text-align: center;
+  font-size: 14px;
+  line-height: 28px;
+  margin: auto;
+  color: var(--color);
+}

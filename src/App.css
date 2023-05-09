@@ -1,0 +1,56 @@
+html {
+  font-family: system-ui;
+  background: var(--bg);
+  color: var(--color);
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+:root {
+  --row-odd: #242424;
+  --row: #292929;
+  --row-hover: #192438;
+  --row-selected: #0b75f5;
+  --header: #292a2d;
+  --border: #4a4c50;
+  --color: #bcc5ce;
+  --bg: #202124;
+  --details-selected: #000000;
+  --details-header: #292a2d;
+  --details-bg: #292a2d;
+  --error-color: #FE5351;
+  --green: #0c3;
+  --blue: #4b89ff;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --row-odd: #242424;
+    --row: #292929;
+    --row-hover: #192438;
+    --row-selected: #454545;
+    --header: #292a2d;
+    --border: #4a4c50;
+    --color: #bcc5ce;
+    --bg: #202124;
+    --details-selected: #000000;
+    --details-header: #292a2d;
+    --details-bg: #292a2d;
+  }
+
+  input[type=checkbox] {
+    filter: invert(80%);
+  }
+
+  a {
+    color: #ababab;
+  }
+} */
