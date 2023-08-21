@@ -65,6 +65,7 @@ function App() {
   const [history, setHistory] = useState<DataItem[]>([])
 
   const onMessage = useCallback((msg: Message) => {
+    console.log('msg', msg)
     const { action, data } = msg
     if (action === "gRPCDebugger") {
       setHistory(prev => {
@@ -73,13 +74,14 @@ function App() {
     }
   }, [setHistory])
 
-  useEffect(() => {
+  const connect = () => {
     let port: ReturnType<typeof chrome.runtime.connect> | undefined = undefined
-    let tabId = undefined
+    let tabId: number | undefined = undefined
 
     if (chrome) {
       try {
         tabId = chrome.devtools.inspectedWindow.tabId;
+        console.log('connected tabId', tabId)
         port = chrome.runtime.connect({ name: "panel" });
         port.postMessage({ tabId, action: "init" });
         port.onMessage.addListener(onMessage);
@@ -90,9 +92,14 @@ function App() {
     }
 
     return () => {
+      console.log('disconnected tabId', tabId)
       port?.onMessage.removeListener(onMessage)
     }
-  }, [onMessage])
+  }
+
+  useEffect(() => {
+    return connect()
+  }, [])
 
   return (
     <div style={{ height: '100%' }}>

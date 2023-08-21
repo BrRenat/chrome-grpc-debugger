@@ -14,6 +14,8 @@ async function* logEach(store, stream) {
 
 window.__GRPC_DEVTOOLS_EXTENSION__ = () => (next) => async (request) => {
   try {
+    console.log('handled', request.url)
+
     const store = {
       name: request.url,
       request: {},
@@ -50,3 +52,5 @@ window.__GRPC_DEVTOOLS_EXTENSION__ = () => (next) => async (request) => {
     throw e;
   }
 }
+
+window.dispatchEvent(new CustomEvent("grpc_devtools_loaded"));

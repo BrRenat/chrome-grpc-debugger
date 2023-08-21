@@ -5,10 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "clear": "rm -rf dist",
+    "build": "pnpm clear && tsc && vite build",
+    "release": "pnpm build && zip -vr grpc-devtools.zip dist/*",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": ">= 20.1.0",
+    "pnpm": "^8.6.12"
+  },
+  "packageManager": "pnpm@8.6.12",
   "dependencies": {
     "@brianmcallister/react-auto-scroll": "^1.1.0",
     "@bufbuild/connect": "^0.8.6",
