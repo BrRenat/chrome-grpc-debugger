@@ -8,6 +8,7 @@ import { Controls } from './components/Controls'
 import type { DataItem } from './components/Table'
 
 export type ExtensionData = {
+  id: number // increment
   name: string
   sent_at?: number
   received_at?: number
@@ -61,20 +62,25 @@ const prepareData = (data: ExtensionData): DataItem => {
 }
 
 function App() {
+  const [preserveLog, setPreserveLog] = useState(false)
   const [search, setSearch] = useState('')
-  const [history, setHistory] = useState<DataItem[]>([])
+  const [history, setHistory] = useState<Record<number, DataItem>>({})
 
   const onMessage = useCallback((msg: Message) => {
     console.log('msg', msg)
     const { action, data } = msg
-    if (action === "gRPCDebugger") {
+    if (action === "gRPCDebugger" && data.data.response.header) {
       setHistory(prev => {
-        return [...prev, prepareData(data.data)]
+        return {
+          ...prev,
+          [Date.now()]: prepareData(data.data)
+        }
       })
     }
   }, [setHistory])
 
-  const connect = () => {
+  const connect = useCallback(() => {
+    setHistory({})
     let port: ReturnType<typeof chrome.runtime.connect> | undefined = undefined
     let tabId: number | undefined = undefined
 
@@ -85,31 +91,43 @@ function App() {
         port = chrome.runtime.connect({ name: "panel" });
         port.postMessage({ tabId, action: "init" });
         port.onMessage.addListener(onMessage);
-
       } catch (error) {
         console.warn(error, 'UI, open port error')
       }
     }
-
-    return () => {
-      console.log('disconnected tabId', tabId)
-      port?.onMessage.removeListener(onMessage)
-    }
-  }
+  }, [onMessage])
 
   useEffect(() => {
-    return connect()
+    const port = chrome.runtime.connect({ name: "panel" });
+    if (port) {
+      port.onDisconnect.addListener(connect)
+    }
+
+    chrome.tabs.onUpdated.addListener(connect);
+
+    connect()
   }, [])
+
+  useEffect(() => {
+    if (preserveLog) {
+      chrome.tabs.onUpdated.removeListener(connect);
+    } else {
+      chrome.tabs.onUpdated.addListener(connect);
+    }
+  }, [preserveLog, connect])
 
   return (
     <div style={{ height: '100%' }}>
       <Controls
         search={search}
         setSearch={setSearch}
-        resetHistory={() => setHistory([])}
+        reset={() => connect()}
+        preserveLog={preserveLog}
+        setPreserveLog={setPreserveLog}
+        resetHistory={() => setHistory({})}
       />
       <AutoScroll height={"calc(100vh - 27px)" as any} showOption={false}>
-        <Table data={history} search={search} />
+        <Table data={Object.values(history)} search={search} />
       </AutoScroll>
     </div>
   )

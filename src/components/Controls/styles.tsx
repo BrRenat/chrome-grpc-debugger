@@ -48,3 +48,7 @@ export const ResetSearch = styled(ResetNetwork)`
     transform: translateY(2px) scale(1.1);
   }
 `
+
+export const ResetButton = styled.button`
+  margin-left: auto;
+`

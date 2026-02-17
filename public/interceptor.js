@@ -12,6 +12,7 @@ async function* logEach(store, stream) {
   }
 }
 
+// Unchecked runtime.lastError: The page keeping the extension port is moved into back/forward cache, so the message channel is closed.
 window.__GRPC_DEVTOOLS_EXTENSION__ = () => (next) => async (request) => {
   try {
     const store = {
