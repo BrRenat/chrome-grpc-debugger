@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { Code } from '@bufbuild/connect'
 import AutoScroll from '@brianmcallister/react-auto-scroll'
@@ -62,9 +62,13 @@ const prepareData = (data: ExtensionData): DataItem => {
 }
 
 function App() {
-  const [preserveLog, setPreserveLog] = useState(false)
+  const [preserveLog, setPreserveLog] = useState(true)
   const [search, setSearch] = useState('')
   const [history, setHistory] = useState<Record<number, DataItem>>({})
+  const preserveLogRef = useRef(preserveLog)
+  const portRef = useRef<ReturnType<typeof chrome.runtime.connect> | null>(null)
+
+  preserveLogRef.current = preserveLog
 
   const onMessage = useCallback((msg: Message) => {
     console.log('msg', msg)
@@ -80,17 +84,31 @@ function App() {
   }, [setHistory])
 
   const connect = useCallback(() => {
-    setHistory({})
-    let port: ReturnType<typeof chrome.runtime.connect> | undefined = undefined
-    let tabId: number | undefined = undefined
+    if (!preserveLogRef.current) {
+      setHistory({})
+    }
+
+    if (portRef.current) {
+      try {
+        portRef.current.disconnect()
+      } catch (e) {
+        // port already dead
+      }
+      portRef.current = null
+    }
 
     if (chrome) {
       try {
-        tabId = chrome.devtools.inspectedWindow.tabId;
+        const tabId = chrome.devtools.inspectedWindow.tabId;
         console.log('connected tabId', tabId)
-        port = chrome.runtime.connect({ name: "panel" });
+        const port = chrome.runtime.connect({ name: "panel" });
         port.postMessage({ tabId, action: "init" });
         port.onMessage.addListener(onMessage);
+        port.onDisconnect.addListener(() => {
+          portRef.current = null;
+          connect();
+        });
+        portRef.current = port;
       } catch (error) {
         console.warn(error, 'UI, open port error')
       }
@@ -98,14 +116,20 @@ function App() {
   }, [onMessage])
 
   useEffect(() => {
-    const port = chrome.runtime.connect({ name: "panel" });
-    if (port) {
-      port.onDisconnect.addListener(connect)
-    }
-
     chrome.tabs.onUpdated.addListener(connect);
-
     connect()
+
+    return () => {
+      chrome.tabs.onUpdated.removeListener(connect);
+      if (portRef.current) {
+        try {
+          portRef.current.disconnect()
+        } catch (e) {
+          // port already dead
+        }
+        portRef.current = null
+      }
+    }
   }, [])
 
   useEffect(() => {
